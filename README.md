@@ -1,2 +1,2 @@
-# Sele-Automation-ModuloII-JoseUchima
-Examen José Carlos Uchima
+# Sele-Automation-ModuloII-ALfredo Támara
+Examen Alfredo Támara Cabrejos
