@@ -1,0 +1,694 @@
+{
+	"info": {
+		"_postman_id": "526a8634-f729-4180-a211-8dbee0d8a0ec",
+		"name": "Project Module II - Postman",
+		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13174400"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "Get User by Username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"//Verificar que el usuario tenga un login definido",
+									"pm.test(\"Login del usuario existe\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.login).to.exist;",
+									"});",
+									"//Verificar que public_repos sea un número",
+									"pm.test(\"Public repos es un número\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.public_repos).to.be.a('number');",
+									"});",
+									"//Verificar que followers sea mayor o igual a 0",
+									"pm.test(\"Followers >= 0\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.followers).to.be.at.least(0);",
+									"});",
+									"//Verificar que created_at sea un string con formato de fecha",
+									"pm.test(\"created_at tiene formato ISO 8601\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const iso8601 = /\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z/;",
+									"    pm.expect(jsonData.created_at).to.match(iso8601);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/{{owner}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{owner}}"
+							]
+						},
+						"description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Repository for Logged-in User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"",
+									"// Status code 201",
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Guardar el nombre del repo desde la respuesta en Environment",
+									"pm.environment.set(\"repo_name\", jsonData.name);",
+									"",
+									"// Verificar que el nombre del repo en la respuesta coincida con la variable del Environment",
+									"pm.test(\"Nombre del repo coincide con timestamp\", function () {",
+									"    pm.expect(jsonData.name).to.eql(pm.environment.get(\"repo_name\"));",
+									"});",
+									"",
+									"// Verificar que el repo no sea privado",
+									"pm.test(\"Repositorio es público\", function () {",
+									"    pm.expect(jsonData.private).to.be.false;",
+									"});",
+									"",
+									"// Verificar que la descripción esté presente",
+									"pm.test(\"Descripción existe\", function () {",
+									"    pm.expect(jsonData.description).to.exist;",
+									"});",
+									"",
+									"// Guardar el id del repositorio en Environment",
+									"pm.environment.set(\"repoId\", jsonData.id);",
+									"pm.test(\"ID del repo guardado\", function () {",
+									"    pm.expect(jsonData.id).to.exist;",
+									"});",
+									"",
+									"//  Logs para depuración",
+									"console.log(\"Repo guardado en Environment:\", pm.environment.get(\"repo_name\"));",
+									"console.log(\"ID guardado en Environment:\", pm.environment.get(\"repoId\"));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Mi-nuevo-repo-Project{{timestamp}}\",\n  \"description\": \"Repositorio de prueba creado desde Postman\",\n  \"private\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/user/repos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"repos"
+							]
+						},
+						"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful PUT request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+									"});",
+									"",
+									"",
+									"//Verificar que el nombre fue actualizado",
+									"pm.test(\"Nombre del perfil actualizado\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.eql(\"Nombre de Perfil Actualizado\");",
+									"});",
+									"",
+									"//Verificar que el blog fue actualizado",
+									"pm.test(\"Blog actualizado correctamente\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.blog).to.eql(\"https://juchima.dev\");",
+									"});",
+									"",
+									"//Verificar que la ubicación fue actualizada",
+									"pm.test(\"Ubicación actualizada correctamente\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.location).to.eql(\"Perú\");",
+									"});",
+									"",
+									"//Verificar que el login del usuario exista",
+									"pm.test(\"Login del usuario existe\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.login).to.exist;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nombre de Perfil Actualizado\",\n  \"blog\": \"https://juchima.dev\",\n  \"location\": \"Perú\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user"
+							]
+						},
+						"description": "This is a PUT request and it is used to overwrite an existing piece of data. For instance, after you create an entity with a POST request, you may want to modify that later. You can do that using a PUT request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful PUT request typically returns a `200 OK`, `201 Created`, or `204 No Content` response code."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Repository by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Status code 204",
+									"pm.test(\"Successful DELETE request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+									"});",
+									"",
+									"// Verificar que la respuesta esté vacía",
+									"pm.test(\"Respuesta vacía\", function () {",
+									"    pm.expect(pm.response.text()).to.eql(\"\");",
+									"});",
+									"",
+									"// Log del repo borrado",
+									"console.log(\"Repo borrado:\", pm.collectionVariables.get(\"repoName\"));",
+									"",
+									"// Confirmar que las variables del repo se eliminen",
+									"pm.collectionVariables.unset(\"repoName\");",
+									"pm.collectionVariables.unset(\"repoId\");",
+									"",
+									"pm.test(\"Variables repoId y repoName eliminadas\", function () {",
+									"    pm.expect(pm.collectionVariables.get(\"repoId\")).to.be.undefined;",
+									"    pm.expect(pm.collectionVariables.get(\"repoName\")).to.be.undefined;",
+									"});",
+									"",
+									"",
+									"//Confirmar que el repo ya no aparece en la lista de repos del usuario",
+									"pm.test(\"Repo ya no existe en la lista de repositorios\", async function () {",
+									"    const repoName = pm.collectionVariables.get(\"repoNameBackup\"); ",
+									"    const owner = pm.collectionVariables.get(\"owner\");",
+									"    const base_url = pm.collectionVariables.get(\"base_url\");",
+									"",
+									"    const response = await pm.sendRequest({",
+									"        url: `${base_url}/users/${owner}/repos`,",
+									"        method: 'GET',",
+									"        header: {",
+									"            'Authorization': 'token ' + pm.environment.get(\"GITHUB_TOKEN\"),",
+									"            'Accept': 'application/vnd.github+json'",
+									"        }",
+									"    });",
+									"",
+									"    let repos = [];",
+									"    try {",
+									"        repos = response.json(); ",
+									"        if (!Array.isArray(repos)) repos = []; ",
+									"    } catch (e) {",
+									"        repos = []; ",
+									"    }",
+									"",
+									"    const repoNames = repos.map(r => r.name);",
+									"    pm.expect(repoNames).to.not.include(repoName);",
+									"});",
+									"",
+									"",
+									"// Confirmar que las variables fueron eliminadas",
+									"pm.test(\"Variables repoId y repoName eliminadas\", function () {",
+									"    pm.expect(pm.collectionVariables.get(\"repoId\")).to.be.undefined;",
+									"    pm.expect(pm.collectionVariables.get(\"repoName\")).to.be.undefined;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/repos/{{owner}}/{{repo_name}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"repos",
+								"{{owner}}",
+								"{{repo_name}}"
+							]
+						},
+						"description": "This is a DELETE request, and it is used to delete data that was previously created via a POST request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful DELETE request typically returns a `200 OK`, `202 Accepted`, or `204 No Content` response code."
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "repositories",
+			"item": [
+				{
+					"name": "Create Issues",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201\", function () {\r",
+									"    pm.response.to.have.status(201); // 201 Created al crear un Issue\r",
+									"});\r",
+									"pm.test(\"La respuesta es JSON\", function () {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"pm.test(\"El Issue tiene un título\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property(\"title\");\r",
+									"    pm.expect(jsonData.title).to.eql(\"Issue de prueba\"); // coincide con el body enviado\r",
+									"});\r",
+									"pm.test(\"El Issue tiene número asignado\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property(\"number\");\r",
+									"    pm.expect(jsonData.number).to.be.a(\"number\");\r",
+									"    // Guardarlo como variable de colección\r",
+									"    pm.collectionVariables.set(\"issueNumber\", jsonData.number);\r",
+									"});\r",
+									"pm.test(\"El Issue está abierto\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.state).to.eql(\"open\");\r",
+									"});\r",
+									"\r",
+									"let jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"issueNumber\", jsonData.number);\r",
+									"console.log(\"Issue creado con número:\", jsonData.number);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Issue de prueba\",\r\n  \"body\": \"Este es un issue temporal para pruebas\",\r\n  \"assignees\": [],\r\n  \"labels\": [\"bug\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/repos/{{owner}}/{{repo_name}}/issues",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"repos",
+								"{{owner}}",
+								"{{repo_name}}",
+								"issues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Issue by Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Estado HTTP correcto\r",
+									"pm.test(\"Status code es 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Respuesta es JSON\r",
+									"pm.test(\"La respuesta es JSON\", function () {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"// Validar número del Issue\r",
+									"pm.test(\"El Issue tiene el mismo número\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.number).to.eql(pm.collectionVariables.get(\"issueNumber\"));\r",
+									"});\r",
+									"\r",
+									"// Validar título del Issue\r",
+									"pm.test(\"El Issue tiene un título\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.title).to.eql(\"Issue de prueba\");\r",
+									"});\r",
+									"\r",
+									"// Validar que el Issue esté abierto o cerrado\r",
+									"pm.test(\"El Issue tiene estado válido\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect([\"open\", \"closed\"]).to.include(jsonData.state);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/repos/juchima/{{repo_name}}/issues/{{issueNumber}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"repos",
+								"juchima",
+								"{{repo_name}}",
+								"issues",
+								"{{issueNumber}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close Issue by Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Estado HTTP correcto\r",
+									"pm.test(\"Status code es 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Respuesta es JSON\r",
+									"pm.test(\"La respuesta es JSON\", function () {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"// Validar que el Issue esté cerrado\r",
+									"pm.test(\"El Issue está cerrado\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.state).to.eql(\"closed\");\r",
+									"});\r",
+									"\r",
+									"// Validar el número del Issue\r",
+									"pm.test(\"El Issue tiene el mismo número\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.number).to.eql(pm.collectionVariables.get(\"issueNumber\"));\r",
+									"});\r",
+									"\r",
+									"// Validar que el título no cambió\r",
+									"pm.test(\"El título del Issue permanece igual\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.title).to.eql(\"Issue de prueba\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"state\": \"closed\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.github.com/repos/juchima/{{repo_name}}/issues/{{issueNumber}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"github",
+								"com"
+							],
+							"path": [
+								"repos",
+								"juchima",
+								"{{repo_name}}",
+								"issues",
+								"{{issueNumber}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Issue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  Status code es 204\r",
+									"pm.test(\"Status code es 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});\r",
+									"\r",
+									"// No hay contenido en la respuesta\r",
+									"pm.test(\"No hay contenido en la respuesta\", function () {\r",
+									"    pm.expect(pm.response.text()).to.eql(\"\");\r",
+									"});\r",
+									"\r",
+									"// Registrar en consola que el repo fue eliminado\r",
+									"pm.test(\"Registrar repo eliminado\", function () {\r",
+									"    console.log(\"Repositorio eliminado:\", pm.collectionVariables.get(\"repoName\"));\r",
+									"    pm.expect(true).to.be.true; // Para que aparezca como test\r",
+									"});\r",
+									"\r",
+									"//  Limpiar variable de colección\r",
+									"pm.test(\"Limpiar variable repoName\", function () {\r",
+									"    pm.collectionVariables.unset(\"repoName\");\r",
+									"    pm.expect(true).to.be.true; // Para que aparezca como test\r",
+									"});\r",
+									"\r",
+									"// Verificar que variable ya no exista\r",
+									"pm.test(\"Variable repoName eliminada\", function () {\r",
+									"    pm.expect(pm.collectionVariables.get(\"repoName\")).to.be.undefined;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"state\": \"closed\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/repos/{{owner}}/{{repo_name}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"repos",
+								"{{owner}}",
+								"{{repo_name}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "DUMMY_TOKEN",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const timestamp = Date.now();\r",
+					"pm.collectionVariables.set(\"timestamp\", timestamp);\r",
+					"const repoName = `Mi-nuevo-repo-Project${timestamp}`;\r",
+					"pm.collectionVariables.set(\"repoName\", repoName);\r",
+					"\r",
+					"\r",
+					"\r",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "base_url",
+			"value": "https://api.github.com"
+		},
+		{
+			"key": "owner",
+			"value": "atamara"
+		},
+		{
+			"key": "timestamp",
+			"value": ""
+		},
+		{
+			"key": "repo_name",
+			"value": ""
+		},
+		{
+			"key": "issueNumber",
+			"value": ""
+		}
+	]
+}
